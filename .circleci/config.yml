@@ -222,6 +222,7 @@ jobs:
             cd postman-data-generator/appium_data
             npx newman run cancel_subscription_from_real_store.postman_collection.json -d ../../data.json -e integration.postman_environment.json --export-environment env.json
             echo "After run cancel_subscription_from_real_store"
+            exit 0
       - run:
           when: always
           name: "Access target folder to store artifacts"
