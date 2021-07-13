@@ -160,10 +160,10 @@ jobs:
       - run:
           name: "Checkout Appium test repo"
           command: |
-            # apt-get -y update && apt-get -y install git
-            # git clone git@github.com:freeletics/Appium_e2e_tests.git
-            # cd Appium_e2e_tests
-            # git checkout master
+            apt-get -y update && apt-get -y install git
+            git clone git@github.com:freeletics/Appium_e2e_tests.git
+            cd Appium_e2e_tests
+            git checkout master
       - run:
           no_output_timeout: 30m
           name: "Parse environment file containing the test data &update app to kobiton  and run tests"
@@ -206,16 +206,23 @@ jobs:
               )
             echo $ID
             
-            # Sleep 15 seconds to give time for the previous Upload be available
+      - run:
+          name: "Get app id"
+          command: |
+            # Need to pause for some seconds so that the previous Upload can be fetched
             sleep 15
             apt-get -y update && apt-get -y install jq
             APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
             echo "app id is: $APPID"
-
+            echo "export APPID=${APPID}" >> $BASH_ENV
+      - run:
+          name: "Run tests"
+          command: |
+            echo "app id is: $APPID"
             apt-get -y update && apt-get -y install git
             cd Appium_e2e_tests
             git checkout master
-            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}    
+            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}     
             
 
 
