@@ -195,13 +195,13 @@ jobs:
             curl -X POST https://api.kobiton.com/v1/apps \
               -H "Authorization: Basic ${KOBITON_AUTH}" \
               -H 'Content-Type: application/json' \
-              -d "{\"filename\" :  \"upload_new.apk \", \"appPath\" :\"$appPath\"}"
+              -d "{\"filename\" :  \"upload_new.apk \", \"appPath\" :\"$appPath\"}" 
 
-            echo "Get App ID" 
-            export ID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
-            echo $ID 
+            echo "Get App ID:" 
+            export APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
+            echo ${APPID}
 
-            # apt-get -y update && apt-get -y install git
+            apt-get -y update && apt-get -y install git
             cd Appium_e2e_tests
             git checkout master
             ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${ID}
