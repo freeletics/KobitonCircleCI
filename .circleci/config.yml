@@ -173,19 +173,15 @@ jobs:
             echo "$EMAILS"
 
             echo "Delete the old app version. otherwise kobiton doesnt work"
-
             export DELETEID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .versions[].id')
             echo $DELETEID
             curl -X DELETE https://api.kobiton.com/v1/app/versions/$DELETEID -H "Authorization: Basic ${KOBITON_AUTH}"
 
             echo "Getting the presigned url"
-
             export RESP=$(curl -XPOST -H "Authorization: Basic ${KOBITON_AUTH}" -H "Content-type: application/json" -d "{
                         \"filename\" : \"upload_new.apk\"}" https://api.kobiton.com/v1/apps/uploadUrl)
-
             echo $RESP
             $(echo $RESP | jq -r 'keys[] as $k | "export \($k)=\(.[$k])"')
-            
             echo $url
             echo $appPath
 
@@ -203,11 +199,12 @@ jobs:
 
             echo "Get App ID" 
             export ID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
+            echo $ID 
 
-            apt-get -y update && apt-get -y install git
+            # apt-get -y update && apt-get -y install git
             cd Appium_e2e_tests
             git checkout master
-            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=$ID
+            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${ID}
 
   run_appium_tests_ios:
     working_directory: /home/circleci/repo
@@ -319,15 +316,18 @@ workflows:
     #           only:
     #             - master
     jobs:
-      - postman_test_data
-      - assemble_freeletics_android_release
-      - run_appium_tests_android:
-          requires:
-            - postman_test_data
-            - assemble_freeletics_android_release
-      - postman_delete_data:
-          requires:
-            - run_appium_tests_android
+      - run_appium_tests_android
+ 
+    # jobs:
+    #   - postman_test_data
+    #   - assemble_freeletics_android_release
+    #   - run_appium_tests_android:
+    #       requires:
+    #         - postman_test_data
+    #         - assemble_freeletics_android_release
+    #   - postman_delete_data:
+    #       requires:
+    #         - run_appium_tests_android
 
   run_appium_tests_ios:
     triggers:
