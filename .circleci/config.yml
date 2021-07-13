@@ -205,24 +205,17 @@ jobs:
               jq -r .appId
               )
             echo $ID
-
-      - run:
-          name: "Get app id"
-          command: |
+            
+            # Sleep 15 seconds to give time for the previous Upload be available
             sleep 15
             apt-get -y update && apt-get -y install jq
             APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
             echo "app id is: $APPID"
-            echo "export APPID=${APPID}" >> $BASH_ENV
-      
-      - run:
-          name: "Run tests"
-          command: |
-            echo "app id is: $APPID"
+
             apt-get -y update && apt-get -y install git
             cd Appium_e2e_tests
             git checkout master
-            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}           
+            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}    
             
 
 
