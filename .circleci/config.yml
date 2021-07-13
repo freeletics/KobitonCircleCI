@@ -169,7 +169,8 @@ jobs:
           name: "Parse environment file containing the test data &update app to kobiton  and run tests"
           command: |
             apt-get -y update && apt-get -y install jq
-            $( jq -r '.values[1].value as $k | "export EMAILS=\($k)"' env.json)
+            # $( jq -r '.values[1].value as $k | "export EMAILS=\($k)"' env.json)
+            export EMAILS="appium+testuser+autoconfirm+1623440739849@freeletics.com,appium+testuser+autoconfirm+1623440743342@freeletics.com,appium+testuser+autoconfirm+1623440746278@freeletics.com,appium+testuser+autoconfirm+1623440748583@freeletics.com"
             echo "$EMAILS"
 
             echo "Delete the old app version. otherwise kobiton doesnt work"
@@ -199,7 +200,8 @@ jobs:
 
             echo "Get App ID" 
             export ID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
-            echo $ID 
+            echo "App id is:" 
+            echo ${ID} 
 
             # apt-get -y update && apt-get -y install git
             cd Appium_e2e_tests
@@ -316,15 +318,8 @@ workflows:
     #           only:
     #             - master
     jobs:
-      - postman_test_data
-      - assemble_freeletics_android_release
-      - run_appium_tests_android:
-          requires:
-            - postman_test_data
-            - assemble_freeletics_android_release
-      - postman_delete_data:
-          requires:
-            - run_appium_tests_android
+      - run_appium_tests_android
+
 
   run_appium_tests_ios:
     triggers:
