@@ -198,12 +198,12 @@ jobs:
             #   -d "{\"filename\" :  \"upload_new.apk \", \"appPath\" :\"$appPath\"}"
 
             echo "Get App ID:" 
-            echo $(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
-
+            export APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
+            echo ${APPID}
             # # apt-get -y update && apt-get -y install git
-            # cd Appium_e2e_tests
-            # git checkout master
-            # ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}
+             cd Appium_e2e_tests
+             git checkout master
+             ./mvnw clean test -Dapp.os=ANDROID -Demails="appium+testuser+autoconfirm+1623440739849@freeletics.com,appium+testuser+autoconfirm+1623440743342@freeletics.com,appium+testuser+autoconfirm+1623440746278@freeletics.com,appium+testuser+autoconfirm+1623440748583@freeletics.com" -Dis.kobiton=true -Dapp.and=${APPID}
 
   run_appium_tests_ios:
     working_directory: /home/circleci/repo
