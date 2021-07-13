@@ -198,7 +198,7 @@ jobs:
             #   -d "{\"filename\" :  \"upload_new.apk \", \"appPath\" :\"$appPath\"}"
 
             echo "Get App ID:" 
-            echo $(curl -X GET https://api.kobiton.com/v1/apps -H 'Authorization: Basic ${KOBITON_AUTH}'  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')"
+            echo $(curl -X GET https://api.kobiton.com/v1/apps -H 'Authorization: Basic ${KOBITON_AUTH}'  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
 
             # # apt-get -y update && apt-get -y install git
             # cd Appium_e2e_tests
