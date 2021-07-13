@@ -168,28 +168,28 @@ jobs:
           no_output_timeout: 30m
           name: "Parse environment file containing the test data &update app to kobiton  and run tests"
           command: |
-            # apt-get -y update && apt-get -y install jq
-            # $( jq -r '.values[1].value as $k | "export EMAILS=\($k)"' env.json)
-            # echo "$EMAILS"
+            apt-get -y update && apt-get -y install jq
+            $( jq -r '.values[1].value as $k | "export EMAILS=\($k)"' env.json)
+            echo "$EMAILS"
 
-            # echo "Delete the old app version. otherwise kobiton doesnt work"
+            echo "Delete the old app version. otherwise kobiton doesnt work"
 
-            # export DELETEID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .versions[].id')
-            # echo $DELETEID
-            # curl -X DELETE https://api.kobiton.com/v1/app/versions/$DELETEID -H "Authorization: Basic ${KOBITON_AUTH}"
+            export DELETEID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .versions[].id')
+            echo $DELETEID
+            curl -X DELETE https://api.kobiton.com/v1/app/versions/$DELETEID -H "Authorization: Basic ${KOBITON_AUTH}"
 
-            # echo "Getting the presigned url"
+            echo "Getting the presigned url"
 
-            # export RESP=$(curl -XPOST -H "Authorization: Basic ${KOBITON_AUTH}" -H "Content-type: application/json" -d "{
-            #             \"filename\" : \"upload_new.apk\"}" https://api.kobiton.com/v1/apps/uploadUrl)
+            export RESP=$(curl -XPOST -H "Authorization: Basic ${KOBITON_AUTH}" -H "Content-type: application/json" -d "{
+                        \"filename\" : \"upload_new.apk\"}" https://api.kobiton.com/v1/apps/uploadUrl)
 
-            # echo $$RESP
-            # $(echo $RESP | jq -r 'keys[] as $k | "export \($k)=\(.[$k])"')
+            echo $$RESP
+            $(echo $RESP | jq -r 'keys[] as $k | "export \($k)=\(.[$k])"')
 
-            # echo $url
-            # echo $appPath
+            echo $url
+            echo $appPath
 
-            # echo "Uploading to s3 bucket"
+            echo "Uploading to s3 bucket"
 
             curl -T app/freeletics/build/outputs/apk/integrationApi/release/freeletics-integrationApi-release.apk\
               -H "Content-Type: application/octet-stream" \
@@ -209,7 +209,7 @@ jobs:
       - run:
           name: "Get app id"
           command: |
-            sleep 10
+            sleep 15
             apt-get -y update && apt-get -y install jq
             APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
             echo "app id is: $APPID"
@@ -218,11 +218,11 @@ jobs:
       - run:
           name: "Run tests"
           command: |
-            # echo "app id is: $APPID"
-            # apt-get -y update && apt-get -y install git
-            # cd Appium_e2e_tests
-            # git checkout master
-            # ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}           
+            echo "app id is: $APPID"
+            apt-get -y update && apt-get -y install git
+            cd Appium_e2e_tests
+            git checkout master
+            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}           
             
 
 
@@ -336,16 +336,15 @@ workflows:
     #           only:
     #             - master
     jobs:
-      - run_appium_tests_android
-      # - postman_test_data
-      # - assemble_freeletics_android_release
-      # - run_appium_tests_android:
-      #     requires:
-      #       - postman_test_data
-      #       - assemble_freeletics_android_release
-      # - postman_delete_data:
-      #     requires:
-      #       - run_appium_tests_android
+      - postman_test_data
+      - assemble_freeletics_android_release
+      - run_appium_tests_android:
+          requires:
+            - postman_test_data
+            - assemble_freeletics_android_release
+      - postman_delete_data:
+          requires:
+            - run_appium_tests_android
 
 
 
