@@ -290,7 +290,7 @@ jobs:
               
             # Need to pause for some seconds so that the previous Upload can be fetched  
             sleep 15
-            APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
+            APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="IOS") | .id')
             echo "app id is: $APPID"
 
             apt-get -y update && apt-get -y install jq
