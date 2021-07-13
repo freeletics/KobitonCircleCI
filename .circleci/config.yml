@@ -180,10 +180,7 @@ jobs:
 
             echo "Getting the presigned url"
 
-            export RESP=$(curl -XPOST https://api.kobiton.com/v1/apps/uploadUrl \
-            -H 'Authorization: Basic ${KOBITON_AUTH}' \
-            -H 'Content-type: application/json' \
-            -d '{\"filename\" : \"upload_new.apk\"}')
+            export RESP=$(curl -v -X POST -H 'Authorization: Basic ${KOBITON_AUTH}' -H 'Content-type: application/json' -d '{\"filename\" : \"upload_new.apk\"} https://api.kobiton.com/v1/apps/uploadUrl')
 
             echo $RESP
             $(echo $RESP | jq -r 'keys[] as $k | "export \($k)=\(.[$k])"')
