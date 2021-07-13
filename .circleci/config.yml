@@ -160,10 +160,10 @@ jobs:
       - run:
           name: "Checkout Appium test repo"
           command: |
-            apt-get -y update && apt-get -y install git
-            git clone git@github.com:freeletics/Appium_e2e_tests.git
-            cd Appium_e2e_tests
-            git checkout master
+            # apt-get -y update && apt-get -y install git
+            # git clone git@github.com:freeletics/Appium_e2e_tests.git
+            # cd Appium_e2e_tests
+            # git checkout master
       - run:
           no_output_timeout: 30m
           name: "Parse environment file containing the test data &update app to kobiton  and run tests"
@@ -197,10 +197,8 @@ jobs:
             #   -H 'Content-Type: application/json' \
             #   -d "{\"filename\" :  \"upload_new.apk \", \"appPath\" :\"$appPath\"}"
 
-            echo "Get App ID" 
-            export APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H 'Authorization: Basic ${KOBITON_AUTH}'  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
-            echo "App id is:" 
-            echo ${APPID} 
+            echo "Get App ID:" 
+            echo $(curl -X GET https://api.kobiton.com/v1/apps -H 'Authorization: Basic ${KOBITON_AUTH}'  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')"
 
             # # apt-get -y update && apt-get -y install git
             # cd Appium_e2e_tests
