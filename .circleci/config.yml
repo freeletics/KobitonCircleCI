@@ -209,6 +209,7 @@ jobs:
       - run:
           name: "Get app id"
           command: |
+            sleep 10
             apt-get -y update && apt-get -y install jq
             APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
             echo "app id is: $APPID"
