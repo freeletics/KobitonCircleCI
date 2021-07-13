@@ -168,7 +168,7 @@ jobs:
           no_output_timeout: 30m
           name: "Parse environment file containing the test data &update app to kobiton  and run tests"
           command: |
-            # apt-get -y update && apt-get -y install jq
+            apt-get -y update && apt-get -y install jq
             # $( jq -r '.values[1].value as $k | "export EMAILS=\($k)"' env.json)
             # echo "$EMAILS"
 
