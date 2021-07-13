@@ -173,38 +173,58 @@ jobs:
             echo "$EMAILS"
 
             echo "Delete the old app version. otherwise kobiton doesnt work"
+
             export DELETEID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .versions[].id')
             echo $DELETEID
             curl -X DELETE https://api.kobiton.com/v1/app/versions/$DELETEID -H "Authorization: Basic ${KOBITON_AUTH}"
 
             echo "Getting the presigned url"
+
             export RESP=$(curl -XPOST -H "Authorization: Basic ${KOBITON_AUTH}" -H "Content-type: application/json" -d "{
                         \"filename\" : \"upload_new.apk\"}" https://api.kobiton.com/v1/apps/uploadUrl)
-            echo $RESP
+
+            echo $$RESP
             $(echo $RESP | jq -r 'keys[] as $k | "export \($k)=\(.[$k])"')
+
             echo $url
             echo $appPath
 
             echo "Uploading to s3 bucket"
+
             curl -T app/freeletics/build/outputs/apk/integrationApi/release/freeletics-integrationApi-release.apk\
               -H "Content-Type: application/octet-stream" \
               -H "x-amz-tagging: unsaved=true" \
               -X PUT $url
 
             echo "Creating an upload on kobiton"
-            curl -X POST https://api.kobiton.com/v1/apps \
+
+            export ID=$(curl -X POST https://api.kobiton.com/v1/apps \
               -H "Authorization: Basic ${KOBITON_AUTH}" \
               -H 'Content-Type: application/json' \
-              -d "{\"filename\" :  \"upload_new.apk \", \"appPath\" :\"$appPath\"}" 
-
-            echo "Get App ID:" 
-            export APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
-            echo ${APPID}
-
+              -d "{\"filename\" :  \"upload_new.apk \", \"appPath\" :\"$appPath\"}" |
+              jq -r .appId
+              )
+            echo $ID
+            
+      - run:
+          name: "Get app id"
+          command: |
+            # Need to pause for some seconds so that the previous Upload can be fetched
+            sleep 15
+            apt-get -y update && apt-get -y install jq
+            APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
+            echo "app id is: $APPID"
+            echo "export APPID=${APPID}" >> $BASH_ENV
+      - run:
+          name: "Run tests"
+          command: |
+            echo "app id is: $APPID"
             apt-get -y update && apt-get -y install git
             cd Appium_e2e_tests
             git checkout master
-            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${ID}
+            ./mvnw clean test -Dapp.os=ANDROID -Demails=${EMAILS} -Dis.kobiton=true -Dapp.and=${APPID}     
+            
+
 
   run_appium_tests_ios:
     working_directory: /home/circleci/repo
@@ -267,6 +287,11 @@ jobs:
               jq -r .appId
                )
               echo $ID
+              
+            # Need to pause for some seconds so that the previous Upload can be fetched  
+            sleep 15
+            APPID=$(curl -X GET https://api.kobiton.com/v1/apps -H "Authorization: Basic ${KOBITON_AUTH}"  -H 'Accept: application/json' | jq -c '.apps[] | select (.os =="ANDROID") | .id')
+            echo "app id is: $APPID"
 
             apt-get -y update && apt-get -y install jq
             $( jq -r '.values[1].value as $k | "export EMAILS=\($k)"' env.json)
@@ -274,7 +299,7 @@ jobs:
 
             cd Appium_e2e_tests
             git checkout master
-            ./mvnw clean test -Dapp.os=IOS -Demails=${EMAILS} -Dis.kobiton=true -Dapp.ios=${ID}
+            ./mvnw clean test -Dapp.os=IOS -Demails=${EMAILS} -Dis.kobiton=true -Dapp.ios=${APPID}
 
   postman_delete_data:
     docker:
@@ -308,13 +333,13 @@ workflows:
   version: 2
 
   run_appium_tests_android:
-    # triggers:
-    #   - schedule:
-    #       cron: "0 5 * * 1-5" # 05:00 UTC = 07:00 CEST
-    #       filters:
-    #         branches:
-    #           only:
-    #             - master
+    triggers:
+      - schedule:
+          cron: "0 5 * * 1-5" # 05:00 UTC = 07:00 CEST
+          filters:
+            branches:
+              only:
+                - master
     jobs:
       - postman_test_data
       - assemble_freeletics_android_release
@@ -326,10 +351,12 @@ workflows:
           requires:
             - run_appium_tests_android
 
+
+
   run_appium_tests_ios:
     triggers:
       - schedule:
-          cron: "0 4 * * 1-5" # 05:00 UTC = 07:00 CEST
+          cron: "0 4 * * 1-5" # 04:00 UTC = 06:00 CEST
           filters:
             branches:
               only:
